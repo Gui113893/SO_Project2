@@ -1,5 +1,5 @@
 def f1():
-    return 1+1
+    return 3+3
 
 def f2():
     return 2+2
