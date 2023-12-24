@@ -148,10 +148,34 @@ int main (int argc, char *argv[])
  *  \return table id or -1 (in case of wait decision)
  */
 static int decideTableOrWait(int n)
-{
-     //TODO insert your code here
+{  
+    int freeTables = NUMTABLES;  // start by assuming all tables are free
+    int* tables = (int*)calloc(NUMTABLES, sizeof(int));   // inicialize tables at 0 | 0 (free); 1 (occupied)
 
-     return -1;
+    // check, group by group, if they are already assigned to a table
+    for (int i = 0; i < MAXGROUPS; i++)
+    {   
+        if (sh->fSt.assignedTable[i] != -1){
+            // if a group is already assigned to a table, that table is not free
+            freeTables--;
+            tables[sh->fSt.assignedTable[i]] = 1;  // mark table as occupied
+        }
+    }
+    
+    if (freeTables == 0){
+        // if there are no free tables, the group must wait
+        free(tables);
+        return -1;
+    }
+
+    // if there are free tables, the receptionist must choose the first one available
+    for (int i = 0; i < NUMTABLES; i++)
+    {
+        if (tables[i] == 0){
+            free(tables);
+            return i;
+        }
+    }
 }
 
 /**

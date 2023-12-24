@@ -138,7 +138,7 @@ static request waitForClientOrChef()
 {
     request req; 
     if (semDown (semgid, sh->mutex) == -1)  {                                                  /* enter critical region */
-        perror ("error on the up operation for semaphore access (WT)");
+        perror ("error on the down operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
 
@@ -146,7 +146,7 @@ static request waitForClientOrChef()
     saveState(nFic, &sh->fSt);
     
     if (semUp (semgid, sh->mutex) == -1)      {                                             /* exit critical region */
-        perror ("error on the down operation for semaphore access (WT)");
+        perror ("error on the up operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
 
@@ -157,7 +157,7 @@ static request waitForClientOrChef()
     }
 
     if (semDown (semgid, sh->mutex) == -1)  {                                                  /* enter critical region */
-        perror ("error on the up operation for semaphore access (WT)");
+        perror ("error on the down operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
 
@@ -165,13 +165,13 @@ static request waitForClientOrChef()
     saveState(nFic, &sh->fSt);
 
     if (semUp (semgid, sh->mutex) == -1) {                                                  /* exit critical region */
-        perror ("error on the down operation for semaphore access (WT)");
+        perror ("error on the up operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
 
     // waiter signals that new requests are possible
     if (semUp (semgid, sh->waiterRequestPossible) == -1) {                                                  /* exit critical region */
-        perror ("error on the down operation for semaphore access (WT)");
+        perror ("error on the up operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
 
@@ -229,7 +229,7 @@ static void informChef (int n)
 static void takeFoodToTable (int n)
 {
     if (semDown (semgid, sh->mutex) == -1)  {                                                  /* enter critical region */
-        perror ("error on the up operation for semaphore access (WT)");
+        perror ("error on the down operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
 
@@ -244,7 +244,7 @@ static void takeFoodToTable (int n)
 
     
     if (semUp (semgid, sh->mutex) == -1)  {                                                  /* exit critical region */
-        perror ("error on the down operation for semaphore access (WT)");
+        perror ("error on the up operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
 }
