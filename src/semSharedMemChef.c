@@ -127,6 +127,7 @@ static void waitForOrder ()
 {
     sh->fSt.st.chefStat = WAIT_FOR_ORDER;
     saveState(nFic, &sh->fSt);
+
     // chef waits for a food request
     if (semDown (semgid, sh->waitOrder) == -1) {                                                      
         perror ("error on the up operation for semaphore access (PT)");
@@ -139,6 +140,7 @@ static void waitForOrder ()
     }
 
     sh->fSt.st.chefStat = COOK;
+    lastGroup = sh->fSt.waiterRequest.reqGroup;  // chef saves group that requested food
     saveState(nFic, &sh->fSt);
 
     if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
@@ -177,8 +179,16 @@ static void processOrder ()
     }
 
     sh->fSt.waiterRequest.reqType = FOODREADY;  // chef signals waiter that food is ready
+    sh->fSt.waiterRequest.reqGroup = lastGroup; 
+    saveState(nFic, &sh->fSt);
 
     if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
+        perror ("error on the up operation for semaphore access (PT)");
+        exit (EXIT_FAILURE);
+    }
+
+    // chef signals waiter that he has a request
+    if (semUp (semgid, sh->waiterRequest) == -1) {                                                     
         perror ("error on the up operation for semaphore access (PT)");
         exit (EXIT_FAILURE);
     }
