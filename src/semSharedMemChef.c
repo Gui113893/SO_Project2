@@ -125,23 +125,32 @@ int main (int argc, char *argv[])
  */
 static void waitForOrder ()
 {
-
-    //TODO insert your code here
+    sh->fSt.st.chefStat = WAIT_FOR_ORDER;
+    saveState(nFic, &sh->fSt);
+    // chef waits for a food request
+    if (semDown (semgid, sh->waitOrder) == -1) {                                                      
+        perror ("error on the up operation for semaphore access (PT)");
+        exit (EXIT_FAILURE);
+    }
      
     if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
         perror ("error on the up operation for semaphore access (PT)");
         exit (EXIT_FAILURE);
     }
 
-    //TODO insert your code here
-    
+    sh->fSt.st.chefStat = COOK;
+    saveState(nFic, &sh->fSt);
 
     if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
         perror ("error on the up operation for semaphore access (PT)");
         exit (EXIT_FAILURE);
     }
 
-    //TODO insert your code here
+    // chef acknowledges the order
+    if (semUp (semgid, sh->orderReceived) == -1) {                                                     
+        perror ("error on the up operation for semaphore access (PT)");
+        exit (EXIT_FAILURE);
+    }
 }
 
 /**
@@ -156,20 +165,26 @@ static void processOrder ()
 {
     usleep((unsigned int) floor ((MAXCOOK * random ()) / RAND_MAX + 100.0));
 
-    //TODO insert your code here
+    // chef waits for waiter to be available
+    if (semDown (semgid, sh->waiterRequestPossible) == -1) {                                                     
+        perror ("error on the up operation for semaphore access (PT)");
+        exit (EXIT_FAILURE);
+    }
 
     if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
         perror ("error on the up operation for semaphore access (PT)");
         exit (EXIT_FAILURE);
     }
 
-    //TODO insert your code here
+    sh->fSt.waiterRequest.reqType = FOODREADY;  // chef signals waiter that food is ready
 
     if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
         perror ("error on the up operation for semaphore access (PT)");
         exit (EXIT_FAILURE);
     }
 
-    //TODO insert your code here
+    sh->fSt.st.chefStat = REST;
+    saveState(nFic, &sh->fSt);
+    
 }
 
