@@ -187,10 +187,14 @@ static int decideTableOrWait(int n)
  *  \return group id or -1 (in case of wait decision)
  */
 static int decideNextGroup()
-{
-     //TODO insert your code here
-
-     return -1;
+{   
+    for (int i = 0; i < MAXGROUPS; i++)
+    {
+        if (sh->fSt.assignedTable[i] == -1 && sh->fSt.st.groupStat[i] == ATRECEPTION){
+            return i;
+        }
+    }
+    return -1;
 }
 
 /**
