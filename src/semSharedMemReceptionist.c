@@ -218,7 +218,7 @@ static request waitForGroup()
         exit (EXIT_FAILURE);
     }
 
-    sh->fSt.st.receptionistStat = ASSIGNTABLE;  // receptionist updates its state
+    sh->fSt.st.receptionistStat = WAIT_FOR_REQUEST;  // receptionist updates its state
     saveState(nFic, &sh->fSt);
     
     if (semUp (semgid, sh->mutex) == -1)      {                                             /* exit critical region */
