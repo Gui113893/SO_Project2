@@ -315,6 +315,7 @@ static void receivePayment (int n)
     sh->fSt.assignedTable[n] = -1; // group leaves table
     saveState(nFic, &sh->fSt);
 
+    // receptionist signals to vacant table's group that payment was received
     if (semUp (semgid, sh->tableDone[vacantTable]) == -1) {                                                  /* exit critical region */
         perror ("error on the up operation for semaphore access (WT)");
         exit (EXIT_FAILURE);

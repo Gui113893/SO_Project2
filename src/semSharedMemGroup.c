@@ -188,22 +188,42 @@ static void eat (int id)
  */
 static void checkInAtReception(int id)
 {
-    // TODO insert your code here
+    sh->fSt.st.groupStat[id] = ATRECEPTION;
+    saveState(nFic,&sh->fSt);
+
+    // wait for receptionist to be available 
+    if (semDown (semgid, sh->receptionistRequestPossible) == -1) {                                                  
+        perror ("error on the down operation for semaphore access (CT)");
+        exit (EXIT_FAILURE);
+    }
 
     if (semDown (semgid, sh->mutex) == -1) {                                                  /* enter critical region */
         perror ("error on the down operation for semaphore access (CT)");
         exit (EXIT_FAILURE);
     }
 
-    // TODO insert your code here
+    // the group asks for a table
+    sh->fSt.receptionistRequest.reqType = TABLEREQ;
+    sh->fSt.receptionistRequest.reqGroup = id;
+    saveState(nFic,&sh->fSt);
+
+    // signals receptionist of request
+    if (semUp (semgid, sh->receptionistReq) == -1) {                                                  
+        perror ("error on the up operation for semaphore access (CT)");
+        exit (EXIT_FAILURE);
+    }
 
     if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
         perror ("error on the up operation for semaphore access (CT)");
         exit (EXIT_FAILURE);
     }
 
-    // TODO insert your code here
-
+    // wait for receptionist to assign table
+    if (semDown (semgid, sh->waitForTable[id]) == -1) {                                                
+        perror ("error on the down operation for semaphore access (CT)");
+        exit (EXIT_FAILURE);
+    }
+    
 }
 
 /**
