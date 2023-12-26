@@ -238,21 +238,36 @@ static void checkInAtReception(int id)
  */
 static void orderFood (int id)
 {
-    // TODO insert your code here
+    sh->fSt.st.groupStat[id] = FOOD_REQUEST; // group updates its state
+    saveState(nFic,&sh->fSt);
+
+    // wait for waiter to be available
+    if (semDown (semgid, sh->waiterRequestPossible) == -1) {                                                     
+        perror ("error on the up operation for semaphore access (PT)");
+        exit (EXIT_FAILURE);
+    }
 
     if (semDown (semgid, sh->mutex) == -1) {                                                  /* enter critical region */
         perror ("error on the down operation for semaphore access (CT)");
         exit (EXIT_FAILURE);
     }
 
-    // TODO insert your code here
+    // group requests food to waiter
+    sh->fSt.waiterRequest.reqType = FOODREQ; 
+    sh->fSt.waiterRequest.reqGroup = id;
+    saveState(nFic,&sh->fSt);
 
     if (semUp (semgid, sh->mutex) == -1) {                                                     /* exit critical region */
         perror ("error on the up operation for semaphore access (CT)");
         exit (EXIT_FAILURE);
     }
 
-    // TODO insert your code here
+    // signals waiter of request
+    if (semUp (semgid, sh->waiterRequest) == -1) {                                                  
+        perror ("error on the up operation for semaphore access (CT)");
+        exit (EXIT_FAILURE);
+    }
+
 }
 
 /**
