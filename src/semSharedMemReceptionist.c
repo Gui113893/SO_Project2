@@ -176,6 +176,9 @@ static int decideTableOrWait(int n)
             return i;
         }
     }
+    // in case of error
+    free(tables);
+    return -1;
 }
 
 /**
