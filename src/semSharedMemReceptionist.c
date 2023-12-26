@@ -238,7 +238,6 @@ static request waitForGroup()
     }
 
     ret = sh->fSt.receptionistRequest; // receptionist reads request
-    saveState(nFic, &sh->fSt);
 
     if (semUp (semgid, sh->mutex) == -1) {                                                  /* exit critical region */
      perror ("error on the down operation for semaphore access (WT)");
@@ -279,8 +278,11 @@ static void provideTableOrWaitingRoom (int n)
     } else {
         // if there are free tables, the receptionist must choose the first one available
         sh->fSt.assignedTable[n] = table;
-        sh->fSt.groupsWaiting--;
 
+        if (sh->fSt.groupsWaiting > 0){
+            sh->fSt.groupsWaiting--;
+        }
+        
         // receptionist informs group that it may proceed
         if (semUp (semgid, sh->waitForTable[n]) == -1) {                                                  
             perror ("error on the up operation for semaphore access (WT)");

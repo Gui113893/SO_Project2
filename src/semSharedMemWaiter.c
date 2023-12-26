@@ -162,7 +162,6 @@ static request waitForClientOrChef()
     }
 
     req = sh->fSt.waiterRequest; // waiter reads request
-    saveState(nFic, &sh->fSt);
 
     if (semUp (semgid, sh->mutex) == -1) {                                                  /* exit critical region */
         perror ("error on the up operation for semaphore access (WT)");
@@ -200,6 +199,12 @@ static void informChef (int n)
 
     // waiter informs group that request is received
     if (semUp (semgid, sh->requestReceived[sh->fSt.assignedTable[n]]) == -1)  {                                                  
+        perror ("error on the up operation for semaphore access (WT)");
+        exit (EXIT_FAILURE);
+    }
+
+    // waiter signals chef that he has a request
+    if (semUp (semgid, sh->waitOrder) == -1)  {                                                  
         perror ("error on the up operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }

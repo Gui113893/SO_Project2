@@ -140,8 +140,7 @@ static void waitForOrder ()
     }
 
     sh->fSt.st.chefStat = COOK;
-    lastGroup = sh->fSt.waiterRequest.reqGroup;  // chef saves group that requested food
-    saveState(nFic, &sh->fSt);
+    lastGroup = sh->fSt.foodGroup;  // chef saves group that requested food
 
     if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
         perror ("error on the up operation for semaphore access (PT)");
@@ -178,7 +177,7 @@ static void processOrder ()
         exit (EXIT_FAILURE);
     }
 
-    sh->fSt.waiterRequest.reqType = FOODREADY;  // chef signals waiter that food is ready
+    sh->fSt.waiterRequest.reqType = FOODREADY;  
     sh->fSt.waiterRequest.reqGroup = lastGroup; 
     saveState(nFic, &sh->fSt);
 

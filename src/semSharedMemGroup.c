@@ -189,7 +189,6 @@ static void eat (int id)
 static void checkInAtReception(int id)
 {
     sh->fSt.st.groupStat[id] = ATRECEPTION;
-    saveState(nFic,&sh->fSt);
 
     // wait for receptionist to be available 
     if (semDown (semgid, sh->receptionistRequestPossible) == -1) {                                                  
@@ -238,9 +237,6 @@ static void checkInAtReception(int id)
  */
 static void orderFood (int id)
 {
-    sh->fSt.st.groupStat[id] = FOOD_REQUEST; // group updates its state
-    saveState(nFic,&sh->fSt);
-
     // wait for waiter to be available
     if (semDown (semgid, sh->waiterRequestPossible) == -1) {                                                     
         perror ("error on the up operation for semaphore access (PT)");
@@ -252,15 +248,11 @@ static void orderFood (int id)
         exit (EXIT_FAILURE);
     }
 
+    sh->fSt.st.groupStat[id] = FOOD_REQUEST; // group updates its state
     // group requests food to waiter
     sh->fSt.waiterRequest.reqType = FOODREQ; 
     sh->fSt.waiterRequest.reqGroup = id;
     saveState(nFic,&sh->fSt);
-
-    if (semUp (semgid, sh->mutex) == -1) {                                                     /* exit critical region */
-        perror ("error on the up operation for semaphore access (CT)");
-        exit (EXIT_FAILURE);
-    }
 
     // signals waiter of request
     if (semUp (semgid, sh->waiterRequest) == -1) {                                                  
@@ -268,7 +260,12 @@ static void orderFood (int id)
         exit (EXIT_FAILURE);
     }
 
-    // wait for waiter to deliver request to chef
+    if (semUp (semgid, sh->mutex) == -1) {                                                     /* exit critical region */
+        perror ("error on the up operation for semaphore access (CT)");
+        exit (EXIT_FAILURE);
+    }
+
+    // group waits for waiter to deliver request to chef
     if (semDown (semgid, sh->requestReceived[sh->fSt.assignedTable[id]]) == -1) {                                                  
         perror ("error on the up operation for semaphore access (CT)");
         exit (EXIT_FAILURE);
