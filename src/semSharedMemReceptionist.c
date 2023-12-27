@@ -153,9 +153,9 @@ static int decideTableOrWait(int n)
     int* tables = (int*)calloc(NUMTABLES, sizeof(int));   // inicialize tables at 0 | 0 (free); 1 (occupied)
 
     // check, group by group, if they are already assigned to a table
-    for (int i = 0; i < MAXGROUPS; i++)
+    for (int i = 0; i < sh->fSt.nGroups; i++)
     {   
-        if (sh->fSt.assignedTable[i] != -1){
+        if (groupRecord[i] == ATTABLE){
             // if a group is already assigned to a table, that table is not free
             freeTables--;
             tables[sh->fSt.assignedTable[i]] = 1;  // mark table as occupied
@@ -167,18 +167,16 @@ static int decideTableOrWait(int n)
         free(tables);
         return -1;
     }
-
+    int i;
     // if there are free tables, the receptionist must choose the first one available
-    for (int i = 0; i < NUMTABLES; i++)
+    for (i = 0; i < NUMTABLES; i++)
     {
         if (tables[i] == 0){
-            free(tables);
-            return i;
+            break;
         }
     }
-    // in case of error
     free(tables);
-    return -1;
+    return i;
 }
 
 /**
@@ -191,13 +189,14 @@ static int decideTableOrWait(int n)
  */
 static int decideNextGroup()
 {   
-    for (int i = 0; i < MAXGROUPS; i++)
+    int i;
+    for (i = 0; i < sh->fSt.nGroups; i++)
     {
-        if (sh->fSt.assignedTable[i] == -1 && sh->fSt.st.groupStat[i] == ATRECEPTION){
-            return i;
+        if (groupRecord[i] == WAIT){
+            break;
         }
     }
-    return -1;
+    return i;
 }
 
 /**
@@ -275,9 +274,11 @@ static void provideTableOrWaitingRoom (int n)
     if (table == -1){
         // if there are no free tables, the group must wait
         sh->fSt.groupsWaiting++;
+        groupRecord[n] = WAIT;
     } else {
         // if there are free tables, the receptionist must choose the first one available
         sh->fSt.assignedTable[n] = table;
+        groupRecord[n] = ATTABLE;
 
         if (sh->fSt.groupsWaiting > 0){
             sh->fSt.groupsWaiting--;
@@ -318,14 +319,9 @@ static void receivePayment (int n)
     sh->fSt.st.receptionistStat = RECVPAY;  // receptionist updates its state
     int vacantTable = sh->fSt.assignedTable[n];
     sh->fSt.assignedTable[n] = -1; // group leaves table
+    groupRecord[n] = DONE;
     saveState(nFic, &sh->fSt);
 
-    // receptionist signals to vacant table's group that payment was received
-    if (semUp (semgid, sh->tableDone[vacantTable]) == -1) {                                                  /* exit critical region */
-        perror ("error on the up operation for semaphore access (WT)");
-        exit (EXIT_FAILURE);
-    }
-    
     if (sh->fSt.groupsWaiting > 0){
         int group = decideNextGroup();
         if (group != -1){
@@ -333,6 +329,7 @@ static void receivePayment (int n)
             sh->fSt.st.receptionistStat = ASSIGNTABLE;  // receptionist updates its state
             sh->fSt.assignedTable[group] = vacantTable;
             sh->fSt.groupsWaiting--;
+            groupRecord[group] = ATTABLE;
             saveState(nFic, &sh->fSt);
             if (semUp (semgid, sh->waitForTable[group]) == -1) {                                                  
                 perror ("error on the up operation for semaphore access (WT)");
@@ -346,6 +343,11 @@ static void receivePayment (int n)
         exit (EXIT_FAILURE);
     }
 
+    // receptionist signals to vacant table's group that payment was received
+    if (semUp (semgid, sh->tableDone[vacantTable]) == -1) {                                                   
+        perror ("error on the up operation for semaphore access (WT)");
+        exit (EXIT_FAILURE);
+    }
     
 }
 
