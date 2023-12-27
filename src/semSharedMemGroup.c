@@ -188,9 +188,6 @@ static void eat (int id)
  */
 static void checkInAtReception(int id)
 {
-    sh->fSt.st.groupStat[id] = ATRECEPTION;
-    saveState(nFic,&sh->fSt);
-
     // wait for receptionist to be available 
     if (semDown (semgid, sh->receptionistRequestPossible) == -1) {                                                  
         perror ("error on the down operation for semaphore access (CT)");
@@ -203,8 +200,10 @@ static void checkInAtReception(int id)
     }
 
     // the group asks for a table
+    sh->fSt.st.groupStat[id] = ATRECEPTION; // group updates its state
     sh->fSt.receptionistRequest.reqType = TABLEREQ;
     sh->fSt.receptionistRequest.reqGroup = id;
+    saveState(nFic,&sh->fSt);
 
     // signals receptionist of request
     if (semUp (semgid, sh->receptionistReq) == -1) {                                                  

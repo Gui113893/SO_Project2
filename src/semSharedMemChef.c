@@ -125,9 +125,6 @@ int main (int argc, char *argv[])
  */
 static void waitForOrder ()
 {
-    sh->fSt.st.chefStat = WAIT_FOR_ORDER;
-    saveState(nFic, &sh->fSt);
-
     // chef waits for a food request
     if (semDown (semgid, sh->waitOrder) == -1) {                                                      
         perror ("error on the up operation for semaphore access (PT)");
@@ -139,8 +136,9 @@ static void waitForOrder ()
         exit (EXIT_FAILURE);
     }
 
-    sh->fSt.st.chefStat = COOK;
+    sh->fSt.st.chefStat = COOK;  // chef updates state
     lastGroup = sh->fSt.foodGroup;  // chef saves group that requested food
+    saveState(nFic, &sh->fSt);
 
     if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
         perror ("error on the up operation for semaphore access (PT)");
@@ -179,21 +177,18 @@ static void processOrder ()
 
     sh->fSt.waiterRequest.reqType = FOODREADY;  
     sh->fSt.waiterRequest.reqGroup = lastGroup; 
+    sh->fSt.st.chefStat = WAIT_FOR_ORDER;  // chef updates state
     saveState(nFic, &sh->fSt);
 
     if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
         perror ("error on the up operation for semaphore access (PT)");
         exit (EXIT_FAILURE);
-    }
-
+    } 
+    
     // chef signals waiter that he has a request
     if (semUp (semgid, sh->waiterRequest) == -1) {                                                     
         perror ("error on the up operation for semaphore access (PT)");
         exit (EXIT_FAILURE);
-    }
-
-    sh->fSt.st.chefStat = REST;
-    saveState(nFic, &sh->fSt);
-    
+    }   
 }
 
