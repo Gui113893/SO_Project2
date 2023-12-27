@@ -1,7 +1,7 @@
 #!/bin/bash
 
 case $# in
-    0) n=1000;;
+    0) n=10;;
     1) n=$1;;
     *) echo "USAGE: $0 «number-of-runs»"; exit;;
 esac
