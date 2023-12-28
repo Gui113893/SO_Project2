@@ -194,6 +194,7 @@ static int decideNextGroup()
     {
         if (groupRecord[i] == WAIT){
             groupId = i;
+            break;
         }
     }
     return groupId;
