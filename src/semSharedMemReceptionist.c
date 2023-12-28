@@ -189,14 +189,14 @@ static int decideTableOrWait(int n)
  */
 static int decideNextGroup()
 {   
-    int i;
-    for (i = 0; i < sh->fSt.nGroups; i++)
+    int groupId = -1;
+    for (int i = 0; i < sh->fSt.nGroups; i++)
     {
         if (groupRecord[i] == WAIT){
-            break;
+            groupId = i;
         }
     }
-    return i;
+    return groupId;
 }
 
 /**
